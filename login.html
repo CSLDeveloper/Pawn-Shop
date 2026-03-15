@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Golden Ball Pawn — Manager</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#1a1410;--card:#211a0f;--dark:#0e0c09;--gold:#c9973a;--gold2:#e0b84a;
+    --silver:#c0bdb8;--text:#e8d5b0;--muted:#8a7355;--border:#3a2e1e;
+    --green:#5cb85c;--red:#e05555;--blue:#5b9bd5;
+  }
+  body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+  a{color:var(--gold);text-decoration:none}
+
+  /* ── Header ── */
+  header{background:var(--dark);border-bottom:2px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{font-family:Georgia,serif;font-size:20px;color:var(--gold);font-weight:bold;letter-spacing:1px}
+  .logo-sub{font-size:11px;color:var(--muted);letter-spacing:2px}
+  .header-prices{margin-left:auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .price-badge{font-size:13px;font-weight:600}
+  .price-badge.gold-p{color:var(--gold)}
+  .price-badge.silver-p{color:var(--silver)}
+  .btn-refresh{background:#2a2015;border:1px solid var(--border);color:var(--gold);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;transition:background 0.2s}
+  .btn-refresh:hover{background:#3a2e1e}
+  .updated-ts{font-size:11px;color:var(--muted)}
+
+  /* ── Nav ── */
+  nav{background:var(--dark);border-bottom:1px solid var(--border);display:flex;overflow-x:auto}
+  .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);padding:12px 20px;cursor:pointer;font-size:13px;white-space:nowrap;transition:all 0.2s}
+  .tab-btn:hover{color:var(--gold);background:var(--bg)}
+  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);background:var(--bg)}
+
+  /* ── Layout ── */
+  .tab-panel{display:none;padding:24px;max-width:1100px;margin:0 auto}
+  .tab-panel.active{display:block}
+
+  /* ── Cards ── */
+  .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px}
+  .card-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
+
+  /* ── Stat cards ── */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 20px}
+  .stat-val{font-family:Georgia,serif;font-size:30px;font-weight:bold;margin:6px 0 2px}
+  .stat-val.gold-c{color:var(--gold)}
+  .stat-val.silver-c{color:var(--silver)}
+  .stat-val.blue-c{color:var(--blue)}
+  .stat-chg{font-size:12px}
+  .up{color:var(--green)}
+  .dn{color:var(--red)}
+  .neutral{color:var(--muted)}
+
+  /* ── Charts row ── */
+  .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
+  .chart-wrap{position:relative;height:140px;margin-top:10px}
+
+  /* ── Prediction ── */
+  .pred-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .pred-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
+  .pred-val{font-family:Georgia,serif;font-size:22px;font-weight:bold;margin:4px 0}
+  .pred-trend{font-size:12px}
+  .pred-note{font-size:10px;color:var(--muted);margin-top:6px}
+
+  /* ── History table ── */
+  .history-table{width:100%;border-collapse:collapse;font-size:13px}
+  .history-table th{background:var(--dark);color:var(--gold);font-weight:600;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+  .history-table td{padding:9px 14px;border-bottom:1px solid #2a2015;color:var(--text)}
+  .history-table tr:last-child td{border-bottom:none}
+  .history-table tr:hover td{background:#261f10}
+
+  /* ── Forms ── */
+  .section-title{font-family:Georgia,serif;font-size:22px;color:var(--gold);margin-bottom:4px}
+  .section-sub{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px}
+  .form-group{margin-bottom:14px}
+  .form-label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+  .form-input,.form-select,.form-textarea{width:100%;background:#2a2015;border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color 0.2s}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold)}
+  .form-select option{background:#1a1410}
+  .form-textarea{resize:vertical;min-height:70px}
+  .form-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+  /* ── Radio / Checkboxes ── */
+  .radio-group{display:flex;gap:24px;flex-wrap:wrap}
+  .radio-opt{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}
+  .radio-opt input{accent-color:var(--gold);width:14px;height:14px}
+  .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 8px}
+  .cat-opt{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;padding:3px 0}
+  .cat-opt input{accent-color:var(--gold);width:13px;height:13px;flex-shrink:0}
+
+  /* ── Buttons ── */
+  .btn-gold{background:var(--gold);color:#0e0c09;border:none;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;transition:background 0.2s;letter-spacing:0.5px}
+  .btn-gold:hover{background:var(--gold2)}
+  .btn-dark{background:#3a2e1e;color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer;transition:background 0.2s}
+  .btn-dark:hover{background:#4a3e2e}
+  .btn-red{background:#2a1010;color:var(--red);border:1px solid #3a2020;padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer}
+  .btn-red:hover{background:#3a1818}
+  .btn-row{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
+
+  /* ── Customer table ── */
+  .toolbar{display:flex;align-items:center;gap:12px;background:var(--dark);padding:10px 18px;border-radius:8px 8px 0 0;flex-wrap:wrap}
+  .search-input{background:#2a2015;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:13px;outline:none;width:220px}
+  .search-input:focus{border-color:var(--gold)}
+  .cust-table{width:100%;border-collapse:collapse;font-size:13px}
+  .cust-table th{background:var(--dark);color:var(--gold);font-weight:600;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+  .cust-table td{padding:9px 14px;border-bottom:1px solid #2a2015;color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cust-table tr:hover td{background:#261f10;cursor:pointer}
+  .count-badge{font-size:12px;color:var(--gold);margin-left:8px}
+
+  /* ── Message pane ── */
+  .msg-layout{display:grid;grid-template-columns:260px 1fr;gap:16px}
+  .msg-left{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
+  .msg-right{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
+  .cat-scroll{max-height:260px;overflow-y:auto;padding-right:6px}
+  .cat-scroll::-webkit-scrollbar{width:4px}
+  .cat-scroll::-webkit-scrollbar-track{background:#1a1410}
+  .cat-scroll::-webkit-scrollbar-thumb{background:#3a2e1e;border-radius:2px}
+  .recip-count{font-size:18px;font-weight:700;color:var(--gold);margin-top:12px}
+  .recip-names{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6}
+  .quick-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .quick-btn{background:#2a2015;border:1px solid var(--border);color:var(--gold);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px}
+  .quick-btn:hover{background:#3a2e1e}
+  .send-log{background:#0e0c09;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Courier New',monospace;font-size:11px;color:var(--green);height:160px;overflow-y:auto;margin-top:10px;white-space:pre-wrap;word-break:break-all}
+  .send-log .log-skip{color:var(--muted)}
+  .send-log .log-err{color:var(--red)}
+  .sep{border:none;border-top:1px solid var(--border);margin:14px 0}
+
+  /* ── Settings ── */
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .env-note{background:#1a1a10;border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-size:12px;color:var(--gold);line-height:1.8;margin-top:14px}
+
+  /* ── Success / error ── */
+  .flash{padding:12px 16px;border-radius:6px;margin-bottom:16px;font-size:13px;display:none}
+  .flash.success{background:#1a3020;border:1px solid var(--green);color:var(--green)}
+  .flash.error{background:#2a1010;border:1px solid var(--red);color:var(--red)}
+
+  /* ── Misc ── */
+  .divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+  @media(max-width:700px){
+    .form-row,.form-row-2,.cat-grid,.chart-grid,.pred-grid,.msg-layout{grid-template-columns:1fr}
+    .stat-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ════════════════════════════════════════════════════════════ -->
+<header>
+  <div>
+    <div class="logo">⚜ GOLDEN BALL PAWN</div>
+    <div class="logo-sub">Greenville, SC &nbsp;·&nbsp; Customer Manager</div>
+  </div>
+  <div class="header-prices">
+    <span class="price-badge gold-p" id="hdr-gold">Gold: —</span>
+    <span class="price-badge silver-p" id="hdr-silver">Silver: —</span>
+    <button class="btn-refresh" onclick="doRefresh()">↻ Refresh</button>
+    <span class="updated-ts" id="hdr-ts"></span>
+    {% if config.get("APP_PASSWORD") %}
+    <a href="/logout" style="font-size:12px;color:var(--muted)">Sign out</a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- ═══ NAV ═══════════════════════════════════════════════════════════════ -->
+<nav>
+  <button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
+  <button class="tab-btn" onclick="showTab('add')">➕ Add Customer</button>
+  <button class="tab-btn" onclick="showTab('customers')">👥 Customers</button>
+  <button class="tab-btn" onclick="showTab('messaging')">📨 Send Message</button>
+  <button class="tab-btn" onclick="showTab('settings')">⚙ Settings</button>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB: DASHBOARD
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="tab-dashboard" class="tab-panel active">
+  <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px">
+    <div>
+      <h1 style="font-family:Georgia,serif;font-size:24px;color:var(--gold)">Daily Market Recap</h1>
+    </div>
+    <span style="font-size:12px;color:var(--muted)" id="dash-ts"></span>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="card-label">Gold (XAU/USD)</div>
+      <div class="stat-val gold-c" id="d-gold">—</div>
+      <div class="stat-chg" id="d-gold-chg"></div>
+    </div>
+    <div class="stat-card">
+      <div class="card-label">Silver (XAG/USD)</div>
+      <div class="stat-val silver-c" id="d-silver">—</div>
+      <div class="stat-chg" id="d-silver-chg"></div>
+    </div>
+    <div class="stat-card">
+      <div class="card-label">Total Customers</div>
+      <div class="stat-val blue-c" id="d-cust">—</div>
+      <div class="stat-chg neutral">in your database</div>
+    </div>
+    <div class="stat-card">
+      <div class="card-label">Gold / Silver Ratio</div>
+      <div class="stat-val" id="d-ratio">—</div>
+      <div class="stat-chg neutral">oz silver per oz gold</div>
+    </div>
+  </div>
+
+  <!-- Sparkline charts -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="card-label">Gold — 30-day history ($/oz)</div>
+      <div class="chart-wrap"><canvas id="gold-chart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="card-label">Silver — 30-day history ($/oz)</div>
+      <div class="chart-wrap"><canvas id="silver-chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Predictions -->
+  <div class="pred-grid">
+    <div class="pred-card">
+      <div class="card-label">Tomorrow's Gold Outlook</div>
+      <div class="pred-val gold-c" id="d-gpred">—</div>
+      <div class="pred-trend" id="d-gtrend"></div>
+      <div class="pred-note">Based on 7-day linear trend &nbsp;·&nbsp; Not financial advice</div>
+    </div>
+    <div class="pred-card">
+      <div class="card-label">Tomorrow's Silver Outlook</div>
+      <div class="pred-val silver-c" id="d-spred">—</div>
+      <div class="pred-trend" id="d-strend"></div>
+      <div class="pred-note">Based on 7-day linear trend &nbsp;·&nbsp; Not financial advice</div>
+    </div>
+  </div>
+
+  <!-- History table -->
+  <div class="card" style="margin-top:0">
+    <div class="card-label" style="margin-bottom:12px">Recent Price History</div>
+    <div style="overflow-x:auto">
+      <table class="history-table">
+        <thead><tr>
+          <th>Date</th><th>Gold ($/oz)</th><th>Gold Change</th>
+          <th>Silver ($/oz)</th><th>Silver Change</th>
+        </tr></thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB: ADD CUSTOMER
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="tab-add" class="tab-panel">
+  <h2 class="section-title" id="add-title">New Customer Registration</h2>
+  <div class="section-sub">Fill in details and select what this customer buys or sells</div>
+  <div id="add-flash" class="flash"></div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label" style="margin-bottom:14px">Customer Information</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">First Name *</label>
+        <input class="form-input" id="f-name" placeholder="First name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mobile Number</label>
+        <input class="form-input" id="f-phone" placeholder="555-0100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" id="f-email" placeholder="customer@email.com">
+      </div>
+    </div>
+    <div class="form-group">
+      <div class="card-label" style="margin-bottom:10px">Preferred Contact Method</div>
+      <div class="radio-group">
+        <label class="radio-opt"><input type="radio" name="pref" value="sms"> Text / SMS</label>
+        <label class="radio-opt"><input type="radio" name="pref" value="email"> Email</label>
+        <label class="radio-opt"><input type="radio" name="pref" value="both" checked> Both (SMS + Email)</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label" style="margin-bottom:8px">Interests & Categories</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px">What is this customer interested in buying or selling?</p>
+    <div class="cat-grid" id="add-cats">
+      {% for cat in categories %}
+      <label class="cat-opt">
+        <input type="checkbox" class="add-cat-cb" value="{{ cat }}"> {{ cat }}
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label" style="margin-bottom:8px">Notes (Optional)</div>
+    <textarea class="form-textarea" id="f-notes" placeholder="Any notes about this customer..."></textarea>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn-gold" onclick="saveCustomer()">✓ Save Customer</button>
+    <button class="btn-dark" onclick="clearAddForm()">✕ Clear Form</button>
+    <input type="hidden" id="editing-id" value="">
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB: CUSTOMERS
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="tab-customers" class="tab-panel">
+  <div class="toolbar">
+    <input class="search-input" id="search-input" placeholder="Search name, phone, email…"
+           oninput="loadCustomers()" >
+    <span class="count-badge" id="cust-count"></span>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn-gold" onclick="showTab('add')" style="padding:7px 14px;font-size:12px">+ Add New</button>
+      <button class="btn-dark" onclick="editSelected()">✏ Edit</button>
+      <button class="btn-red" onclick="deleteSelected()">🗑 Delete</button>
+    </div>
+  </div>
+  <div style="overflow-x:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px">
+    <table class="cust-table" id="cust-table">
+      <thead><tr>
+        <th><input type="checkbox" id="sel-all" onchange="toggleSelectAll(this)" style="accent-color:var(--gold)"></th>
+        <th>Name</th><th>Phone</th><th>Email</th><th>Contact</th><th>Interests</th><th>Added</th>
+      </tr></thead>
+      <tbody id="cust-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB: MESSAGING
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="tab-messaging" class="tab-panel">
+  <div class="msg-layout">
+
+    <!-- Left: filter + method -->
+    <div class="msg-left">
+      <div class="card-label" style="margin-bottom:10px">Send To</div>
+      <p style="font-size:12px;color:var(--text);margin-bottom:10px">Customers interested in:</p>
+      <div class="cat-scroll" id="msg-cats">
+        {% for cat in categories %}
+        <label class="cat-opt">
+          <input type="checkbox" class="msg-cat-cb" value="{{ cat }}" onchange="updateRecipients()"> {{ cat }}
+        </label>
+        {% endfor %}
+      </div>
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn-dark" onclick="selectAllCats()" style="font-size:11px;padding:5px 10px">Select All</button>
+        <button class="btn-dark" onclick="clearAllCats()" style="font-size:11px;padding:5px 10px">Clear All</button>
+      </div>
+
+      <hr class="sep">
+
+      <div class="card-label" style="margin-bottom:10px">Send Method</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <label class="radio-opt"><input type="radio" name="smethod" value="sms"> Text Message (SMS)</label>
+        <label class="radio-opt"><input type="radio" name="smethod" value="email"> Email</label>
+        <label class="radio-opt"><input type="radio" name="smethod" value="both" checked> Both (SMS + Email)</label>
+      </div>
+
+      <hr class="sep">
+
+      <div class="recip-count" id="recip-count">Recipients: 0</div>
+      <div class="recip-names" id="recip-names"></div>
+    </div>
+
+    <!-- Right: compose -->
+    <div class="msg-right">
+      <div class="card-label" style="margin-bottom:12px">Compose Message</div>
+
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="qi('Gold is UP to {gold}/oz — great time to SELL! Stop by today.')">Gold ↑</button>
+        <button class="quick-btn" onclick="qi('Gold is DOWN to {gold}/oz — great time to BUY! Stop by today.')">Gold ↓</button>
+        <button class="quick-btn" onclick="qi('Silver is UP to {silver}/oz — great time to SELL! Come see us.')">Silver ↑</button>
+        <button class="quick-btn" onclick="qi('Silver is DOWN to {silver}/oz — great time to BUY! Come see us.')">Silver ↓</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Subject (email only)</label>
+        <input class="form-input" id="msg-subject" placeholder="e.g. Gold prices are up — time to sell!">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message Body</label>
+        <textarea class="form-textarea" id="msg-body" rows="6"
+          placeholder="Type your message here...&#10;&#10;Use {name} for customer name, {gold} for gold price, {silver} for silver price."></textarea>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:12px">
+        Placeholders: <code style="color:var(--gold)">{name}</code> &nbsp;·&nbsp;
+        <code style="color:var(--gold)">{gold}</code> &nbsp;·&nbsp;
+        <code style="color:var(--gold)">{silver}</code>
+      </p>
+
+      <div class="btn-row">
+        <button class="btn-gold" onclick="sendMessages()" style="font-size:15px;padding:12px 28px">⚡ SEND NOW</button>
+        <button class="btn-dark" onclick="previewMessage()">Preview</button>
+        <span id="send-status" style="font-size:13px;color:var(--muted)"></span>
+      </div>
+
+      <div class="card-label" style="margin:14px 0 6px">Send Log</div>
+      <div class="send-log" id="send-log">Ready to send.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TAB: SETTINGS
+════════════════════════════════════════════════════════════════════════════ -->
+<div id="tab-settings" class="tab-panel">
+  <h2 class="section-title">Settings</h2>
+  <div class="section-sub">Configure messaging integrations</div>
+  <div id="settings-flash" class="flash"></div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label" style="margin-bottom:14px">Shop Info</div>
+    <div class="form-row-2">
+      <div class="form-group">
+        <label class="form-label">Shop Name</label>
+        <input class="form-input" id="s-shop_name" placeholder="Golden Ball Pawn">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Shop Phone</label>
+        <input class="form-input" id="s-shop_phone" placeholder="864-555-0100">
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label" style="margin-bottom:14px">Email — Gmail / SMTP</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">From Email Address</label>
+        <input class="form-input" id="s-email_from" placeholder="your@gmail.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">SMTP Server</label>
+        <input class="form-input" id="s-email_smtp" placeholder="smtp.gmail.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">SMTP Port</label>
+        <input class="form-input" id="s-email_port" placeholder="587">
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-label" style="margin-bottom:14px">SMS — Twilio</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Twilio From Number</label>
+        <input class="form-input" id="s-twilio_from" placeholder="+18645550100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Account SID</label>
+        <input class="form-input" id="s-twilio_sid_display" placeholder="Set via Render env var" disabled style="opacity:0.5">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Auth Token</label>
+        <input class="form-input" placeholder="Set via Render env var" disabled style="opacity:0.5">
+      </div>
+    </div>
+  </div>
+
+  <div class="env-note">
+    <strong>🔒 Security Note — Sensitive credentials should be set as Environment Variables on Render, not saved here:</strong><br>
+    <code>EMAIL_PASSWORD</code> &nbsp;·&nbsp; <code>TWILIO_SID</code> &nbsp;·&nbsp; <code>TWILIO_TOKEN</code><br>
+    Go to your Render dashboard → your service → <strong>Environment</strong> → Add Environment Variable.<br><br>
+    <strong>Optional:</strong> Set <code>APP_PASSWORD</code> to protect this page with a login.
+  </div>
+
+  <div class="btn-row" style="margin-top:16px">
+    <button class="btn-gold" onclick="saveSettings()">✓ Save Settings</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════════════════════ -->
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let dashData   = null;
+let allCustomers = [];
+let selectedRow  = null;
+let goldChart    = null;
+let silverChart  = null;
+let livePrices   = {gold: null, silver: null};
+
+// ── Tab switching ─────────────────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.textContent.toLowerCase().includes(name) ||
+        (name === 'add' && b.textContent.includes('Add')) ||
+        (name === 'messaging' && b.textContent.includes('Send')) ||
+        (name === 'settings' && b.textContent.includes('Settings'))) {
+      b.classList.add('active');
+    }
+  });
+  if (name === 'customers')  loadCustomers();
+  if (name === 'settings')   loadSettings();
+  if (name === 'messaging')  updateRecipients();
+  if (name === 'dashboard')  loadDashboard();
+}
+
+// ── API helper ────────────────────────────────────────────────────────────
+async function api(method, path, body) {
+  const opts = {method, headers: {'Content-Type': 'application/json'}};
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch('/api' + path, opts);
+  return r.json();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  const d = await api('GET', '/dashboard');
+  dashData = d;
+  livePrices = {gold: d.gold, silver: d.silver};
+
+  // Header prices
+  document.getElementById('hdr-gold').textContent   = d.gold   ? `Gold: $${fmt(d.gold)}`   : 'Gold: —';
+  document.getElementById('hdr-silver').textContent = d.silver ? `Silver: $${fmt(d.silver)}` : 'Silver: —';
+  document.getElementById('hdr-ts').textContent = d.updated ? `Updated ${d.updated}` : '';
+  document.getElementById('dash-ts').textContent = `Last updated: ${new Date().toLocaleString('en-US', {weekday:'long',month:'long',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'})}`;
+
+  // Stat cards
+  document.getElementById('d-gold').textContent   = d.gold   ? `$${fmt(d.gold)}`   : '—';
+  document.getElementById('d-silver').textContent = d.silver ? `$${fmt(d.silver)}` : '—';
+  document.getElementById('d-cust').textContent   = d.customer_count ?? '—';
+  document.getElementById('d-ratio').textContent  = d.ratio  ? `${d.ratio}` : '—';
+
+  // Change labels
+  function chgLabel(el, chg, pct) {
+    if (chg == null) { el.innerHTML = '<span class="neutral">No prior data yet</span>'; return; }
+    const cls = chg >= 0 ? 'up' : 'dn';
+    const arr = chg >= 0 ? '▲' : '▼';
+    el.innerHTML = `<span class="${cls}">${arr} $${Math.abs(chg).toFixed(2)} (${pct > 0 ? '+' : ''}${pct}%) vs yesterday</span>`;
+  }
+  chgLabel(document.getElementById('d-gold-chg'),   d.gold_chg,   d.gold_pct);
+  chgLabel(document.getElementById('d-silver-chg'), d.silver_chg, d.silver_pct);
+
+  // Predictions
+  const TREND_ICN = {rising: '📈', falling: '📉', stable: '➡', 'insufficient data': '—'};
+  const TREND_CLR = {rising: 'var(--green)', falling: 'var(--red)', stable: 'var(--muted)', 'insufficient data': 'var(--muted)'};
+  document.getElementById('d-gpred').textContent = d.gold_pred   ? `$${fmt(d.gold_pred)}`   : 'Building history…';
+  document.getElementById('d-spred').textContent = d.silver_pred ? `$${fmt(d.silver_pred)}` : 'Building history…';
+  const gtEl = document.getElementById('d-gtrend');
+  const stEl = document.getElementById('d-strend');
+  if (d.gold_trend) {
+    gtEl.innerHTML = `<span style="color:${TREND_CLR[d.gold_trend]}">${TREND_ICN[d.gold_trend] || ''} ${capitalize(d.gold_trend)} trend</span>`;
+    stEl.innerHTML = `<span style="color:${TREND_CLR[d.silver_trend]}">${TREND_ICN[d.silver_trend] || ''} ${capitalize(d.silver_trend)} trend</span>`;
+  }
+
+  // Charts
+  const hist = d.history || [];
+  const labels = hist.map(r => r.date ? r.date.slice(5) : '');
+  const gVals  = hist.map(r => r.gold);
+  const sVals  = hist.map(r => r.silver);
+  drawChart('gold-chart', labels, gVals, '#c9973a', 'rgba(201,151,58,0.12)');
+  drawChart('silver-chart', labels, sVals, '#c0bdb8', 'rgba(192,189,184,0.12)');
+
+  // History table
+  const tbody = document.getElementById('hist-body');
+  tbody.innerHTML = '';
+  let prevG = null, prevS = null;
+  hist.forEach(r => {
+    const gChg = (prevG && r.gold) ? fmtChg(r.gold - prevG) : '';
+    const sChg = (prevS && r.silver) ? fmtChg(r.silver - prevS) : '';
+    tbody.innerHTML += `<tr>
+      <td>${r.date || ''}</td>
+      <td>${r.gold   ? '$' + fmt(r.gold)   : '—'}</td>
+      <td>${gChg}</td>
+      <td>${r.silver ? '$' + fmt(r.silver) : '—'}</td>
+      <td>${sChg}</td>
+    </tr>`;
+    prevG = r.gold; prevS = r.silver;
+  });
+  if (!hist.length) tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px">No history yet — prices are saved daily as you use the app</td></tr>';
+}
+
+function drawChart(canvasId, labels, data, color, fillColor) {
+  const ctx = document.getElementById(canvasId).getContext('2d');
+  const chartRef = canvasId === 'gold-chart' ? 'goldChart' : 'silverChart';
+  if (window[chartRef]) window[chartRef].destroy();
+  window[chartRef] = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: color,
+        backgroundColor: fillColor,
+        borderWidth: 2,
+        pointRadius: 0,
+        fill: true,
+        tension: 0.4,
+        spanGaps: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {legend: {display: false}},
+      scales: {
+        x: {display: false},
+        y: {
+          display: true,
+          grid: {color: 'rgba(58,46,30,0.4)'},
+          ticks: {color: '#8a7355', font: {size: 10},
+            callback: v => '$' + v.toLocaleString()}
+        }
+      }
+    }
+  });
+}
+
+async function doRefresh() {
+  document.getElementById('hdr-gold').textContent = 'Gold: fetching…';
+  document.getElementById('hdr-silver').textContent = 'Silver: fetching…';
+  await api('POST', '/refresh');
+  loadDashboard();
+}
+
+// ── Customer helpers ──────────────────────────────────────────────────────
+async function loadCustomers() {
+  const q = document.getElementById('search-input')?.value || '';
+  allCustomers = await api('GET', `/customers?q=${encodeURIComponent(q)}`);
+  const tbody = document.getElementById('cust-body');
+  tbody.innerHTML = '';
+  allCustomers.forEach(c => {
+    const cats = (c.categories || []).slice(0,3).join(', ') +
+                 (c.categories.length > 3 ? ` +${c.categories.length - 3}` : '');
+    tbody.innerHTML += `<tr data-id="${c.id}" onclick="selectRow(this)">
+      <td><input type="checkbox" class="row-cb" style="accent-color:var(--gold)" onclick="event.stopPropagation()"></td>
+      <td>${esc(c.first_name)}</td>
+      <td>${esc(c.phone || '—')}</td>
+      <td>${esc(c.email || '—')}</td>
+      <td>${(c.contact_pref || '').toUpperCase()}</td>
+      <td style="max-width:260px">${esc(cats || 'None')}</td>
+      <td>${(c.added_date || '—').slice(0,10)}</td>
+    </tr>`;
+  });
+  document.getElementById('cust-count').textContent = `${allCustomers.length} customers`;
+}
+
+function selectRow(tr) {
+  document.querySelectorAll('#cust-body tr').forEach(r => r.style.background = '');
+  tr.style.background = '#2a2015';
+  selectedRow = tr.dataset.id;
+}
+
+function toggleSelectAll(cb) {
+  document.querySelectorAll('.row-cb').forEach(c => c.checked = cb.checked);
+}
+
+function editSelected() {
+  if (!selectedRow) { alert('Please click a customer row first.'); return; }
+  const c = allCustomers.find(x => x.id == selectedRow);
+  if (!c) return;
+  document.getElementById('add-title').textContent = `Editing ${c.first_name}'s Record`;
+  document.getElementById('f-name').value   = c.first_name || '';
+  document.getElementById('f-phone').value  = c.phone  || '';
+  document.getElementById('f-email').value  = c.email  || '';
+  document.getElementById('f-notes').value  = c.notes  || '';
+  document.getElementById('editing-id').value = c.id;
+  const pref = c.contact_pref || 'both';
+  document.querySelectorAll('input[name="pref"]').forEach(r => r.checked = r.value === pref);
+  document.querySelectorAll('.add-cat-cb').forEach(cb => {
+    cb.checked = (c.categories || []).includes(cb.value);
+  });
+  showTab('add');
+}
+
+async function deleteSelected() {
+  const ids = [];
+  if (selectedRow) ids.push(selectedRow);
+  document.querySelectorAll('.row-cb:checked').forEach(cb => {
+    const id = cb.closest('tr').dataset.id;
+    if (id && !ids.includes(id)) ids.push(id);
+  });
+  if (!ids.length) { alert('Please select a customer first.'); return; }
+  if (!confirm(`Delete ${ids.length} customer(s) permanently?`)) return;
+  for (const id of ids) await api('DELETE', `/customers/${id}`);
+  selectedRow = null;
+  loadCustomers();
+}
+
+async function saveCustomer() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showFlash('add-flash', 'First name is required.', 'error'); return; }
+  const data = {
+    first_name:   name,
+    phone:        document.getElementById('f-phone').value.trim(),
+    email:        document.getElementById('f-email').value.trim(),
+    contact_pref: document.querySelector('input[name="pref"]:checked')?.value || 'both',
+    categories:   [...document.querySelectorAll('.add-cat-cb:checked')].map(c => c.value),
+    notes:        document.getElementById('f-notes').value.trim(),
+  };
+  const editId = document.getElementById('editing-id').value;
+  if (editId) {
+    await api('PUT', `/customers/${editId}`, data);
+    showFlash('add-flash', `${name}'s record updated successfully.`, 'success');
+  } else {
+    await api('POST', '/customers', data);
+    showFlash('add-flash', `${name} added to your customer list.`, 'success');
+  }
+  clearAddForm();
+  // Refresh customer count on dashboard
+  document.getElementById('d-cust').textContent = '…';
+  api('GET', '/dashboard').then(d => document.getElementById('d-cust').textContent = d.customer_count);
+}
+
+function clearAddForm() {
+  document.getElementById('add-title').textContent = 'New Customer Registration';
+  document.getElementById('f-name').value  = '';
+  document.getElementById('f-phone').value = '';
+  document.getElementById('f-email').value = '';
+  document.getElementById('f-notes').value = '';
+  document.getElementById('editing-id').value = '';
+  document.querySelectorAll('input[name="pref"]').forEach(r => r.checked = r.value === 'both');
+  document.querySelectorAll('.add-cat-cb').forEach(cb => cb.checked = false);
+}
+
+// ── Messaging ─────────────────────────────────────────────────────────────
+async function updateRecipients() {
+  const cats = [...document.querySelectorAll('.msg-cat-cb:checked')].map(c => c.value);
+  const list = await api('POST', '/recipients', {categories: cats});
+  document.getElementById('recip-count').textContent = `Recipients: ${list.length}`;
+  const names = list.slice(0,8).map(c => c.first_name).join(', ') +
+                (list.length > 8 ? ` and ${list.length - 8} more…` : '');
+  document.getElementById('recip-names').textContent = names;
+}
+
+function selectAllCats() {
+  document.querySelectorAll('.msg-cat-cb').forEach(c => c.checked = true);
+  updateRecipients();
+}
+function clearAllCats() {
+  document.querySelectorAll('.msg-cat-cb').forEach(c => c.checked = false);
+  updateRecipients();
+}
+
+function qi(template) {
+  const g = livePrices.gold   ? `$${fmt(livePrices.gold)}`   : '[gold price]';
+  const s = livePrices.silver ? `$${fmt(livePrices.silver)}` : '[silver price]';
+  const text = template.replace('{gold}', g + '/oz').replace('{silver}', s + '/oz');
+  const ta = document.getElementById('msg-body');
+  ta.value += (ta.value.trim() ? '\n' : '') + text;
+}
+
+function previewMessage() {
+  const body = document.getElementById('msg-body').value.trim();
+  const g = livePrices.gold   ? `$${fmt(livePrices.gold)}`   : '[gold price]';
+  const s = livePrices.silver ? `$${fmt(livePrices.silver)}` : '[silver price]';
+  const preview = body.replace(/{name}/g,'John').replace(/{gold}/g,g+'/oz').replace(/{silver}/g,s+'/oz');
+  alert(`PREVIEW (as "John" would receive):\n\n${preview}`);
+}
+
+async function sendMessages() {
+  const cats   = [...document.querySelectorAll('.msg-cat-cb:checked')].map(c => c.value);
+  const body   = document.getElementById('msg-body').value.trim();
+  const subj   = document.getElementById('msg-subject').value.trim();
+  const method = document.querySelector('input[name="smethod"]:checked')?.value || 'both';
+
+  if (!body) { appendLog('⚠ Please enter a message body.', 'err'); return; }
+
+  const logEl = document.getElementById('send-log');
+  logEl.textContent = '';
+  appendLog(`Starting send via ${method.toUpperCase()}…`);
+  document.getElementById('send-status').textContent = 'Sending…';
+
+  const result = await api('POST', '/send', {categories: cats, body, subject: subj, method});
+  if (result.error) {
+    appendLog(`⚠ Error: ${result.error}`, 'err');
+    document.getElementById('send-status').textContent = '';
+    return;
+  }
+  (result.log || []).forEach(line => {
+    const cls = line.includes('SKIPPED') ? 'skip' : line.includes('ERROR') ? 'err' : '';
+    appendLog(line, cls);
+  });
+  appendLog(`✓ Done — ${result.sent} message(s) sent to ${result.total} customer(s).`);
+  document.getElementById('send-status').textContent = `✓ Sent ${result.sent}`;
+}
+
+function appendLog(text, cls='') {
+  const el = document.getElementById('send-log');
+  const ts = new Date().toLocaleTimeString();
+  const span = document.createElement('span');
+  if (cls) span.className = 'log-' + cls;
+  span.textContent = `[${ts}]  ${text}\n`;
+  el.appendChild(span);
+  el.scrollTop = el.scrollHeight;
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────
+async function loadSettings() {
+  const d = await api('GET', '/settings');
+  Object.entries(d).forEach(([k,v]) => {
+    const el = document.getElementById('s-' + k);
+    if (el) el.value = v || '';
+  });
+}
+
+async function saveSettings() {
+  const keys = ['shop_name','shop_phone','email_from','email_smtp','email_port','twilio_from'];
+  const data = {};
+  keys.forEach(k => {
+    const el = document.getElementById('s-' + k);
+    if (el) data[k] = el.value.trim();
+  });
+  await api('POST', '/settings', data);
+  showFlash('settings-flash', 'Settings saved successfully.', 'success');
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────
+function fmt(n) { return n ? Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : '—'; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+function fmtChg(d) {
+  const cls = d >= 0 ? 'up' : 'dn';
+  const arr = d >= 0 ? '▲' : '▼';
+  return `<span class="${cls}">${arr} $${Math.abs(d).toFixed(2)}</span>`;
+}
+function showFlash(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.className = `flash ${type}`; el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+  // Auto-refresh every 5 minutes
+  setInterval(loadDashboard, 300_000);
+});
+</script>
+</body>
+</html>
