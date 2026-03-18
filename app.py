@@ -354,7 +354,7 @@ def api_send():
     gold, silver = get_prices()
     g_str = f"${gold:,.2f}"   if gold   else ""
     s_str = f"${silver:,.2f}" if silver else ""
-    shop  = get_setting("shop_name", "Golden Ball Pawn")
+    shop  = get_setting("shop_name", "Cash For Gold")
     log = []
     ok  = 0
     for c in customers:
