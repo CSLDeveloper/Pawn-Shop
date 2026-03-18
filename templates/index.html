@@ -3,47 +3,47 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Golden Ball Pawn — Manager</title>
+<title>Cash For Gold - Manager</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#1a1410;--card:#211a0f;--dark:#0e0c09;--gold:#c9973a;--gold2:#e0b84a;
-    --silver:#c0bdb8;--text:#e8d5b0;--muted:#8a7355;--border:#3a2e1e;
-    --green:#5cb85c;--red:#e05555;--blue:#5b9bd5;
+    --bg:#f0ece4;--card:#ffffff;--dark:#2c2416;--gold:#a87820;--gold2:#c9973a;
+    --silver:#6b7280;--text:#1c1710;--muted:#7a6a50;--border:#ddd4c0;
+    --green:#2a7d3a;--red:#c0392b;--blue:#1a5fa8;
   }
   body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
   a{color:var(--gold);text-decoration:none}
 
   /* ── Header ── */
-  header{background:var(--dark);border-bottom:2px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-  .logo{font-family:Georgia,serif;font-size:20px;color:var(--gold);font-weight:bold;letter-spacing:1px}
-  .logo-sub{font-size:11px;color:var(--muted);letter-spacing:2px}
+  header{background:var(--dark);border-bottom:3px solid var(--gold2);padding:12px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{font-family:Georgia,serif;font-size:20px;color:var(--gold2);font-weight:bold;letter-spacing:1px}
+  .logo-sub{font-size:11px;color:#a89070;letter-spacing:2px}
   .header-prices{margin-left:auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
   .price-badge{font-size:13px;font-weight:600}
-  .price-badge.gold-p{color:var(--gold)}
-  .price-badge.silver-p{color:var(--silver)}
-  .btn-refresh{background:#2a2015;border:1px solid var(--border);color:var(--gold);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;transition:background 0.2s}
-  .btn-refresh:hover{background:#3a2e1e}
-  .updated-ts{font-size:11px;color:var(--muted)}
+  .price-badge.gold-p{color:var(--gold2)}
+  .price-badge.silver-p{color:#c0bdb8}
+  .btn-refresh{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:var(--gold2);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;transition:background 0.2s}
+  .btn-refresh:hover{background:rgba(255,255,255,0.18)}
+  .updated-ts{font-size:11px;color:#a89070}
 
   /* ── Nav ── */
-  nav{background:var(--dark);border-bottom:1px solid var(--border);display:flex;overflow-x:auto}
-  .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);padding:12px 20px;cursor:pointer;font-size:13px;white-space:nowrap;transition:all 0.2s}
-  .tab-btn:hover{color:var(--gold);background:var(--bg)}
-  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);background:var(--bg)}
+  nav{background:#fff;border-bottom:2px solid var(--border);display:flex;overflow-x:auto;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+  .tab-btn{background:transparent;border:none;border-bottom:3px solid transparent;color:var(--muted);padding:12px 20px;cursor:pointer;font-size:13px;white-space:nowrap;transition:all 0.2s;margin-bottom:-2px}
+  .tab-btn:hover{color:var(--gold);background:#faf7f2}
+  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);background:#faf7f2;font-weight:600}
 
   /* ── Layout ── */
   .tab-panel{display:none;padding:24px;max-width:1100px;margin:0 auto}
   .tab-panel.active{display:block}
 
   /* ── Cards ── */
-  .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
   .card-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;margin-bottom:6px}
 
   /* ── Stat cards ── */
   .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px}
-  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 20px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
   .stat-val{font-family:Georgia,serif;font-size:30px;font-weight:bold;margin:6px 0 2px}
   .stat-val.gold-c{color:var(--gold)}
   .stat-val.silver-c{color:var(--silver)}
@@ -55,88 +55,88 @@
 
   /* ── Charts row ── */
   .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
+  .chart-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
   .chart-wrap{position:relative;height:140px;margin-top:10px}
 
   /* ── Prediction ── */
   .pred-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-  .pred-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
+  .pred-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
   .pred-val{font-family:Georgia,serif;font-size:22px;font-weight:bold;margin:4px 0}
   .pred-trend{font-size:12px}
   .pred-note{font-size:10px;color:var(--muted);margin-top:6px}
 
   /* ── History table ── */
   .history-table{width:100%;border-collapse:collapse;font-size:13px}
-  .history-table th{background:var(--dark);color:var(--gold);font-weight:600;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
-  .history-table td{padding:9px 14px;border-bottom:1px solid #2a2015;color:var(--text)}
+  .history-table th{background:#f5f0e8;color:var(--gold);font-weight:700;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border)}
+  .history-table td{padding:9px 14px;border-bottom:1px solid #ede8dc;color:var(--text)}
   .history-table tr:last-child td{border-bottom:none}
-  .history-table tr:hover td{background:#261f10}
+  .history-table tr:hover td{background:#faf7f0}
 
   /* ── Forms ── */
-  .section-title{font-family:Georgia,serif;font-size:22px;color:var(--gold);margin-bottom:4px}
+  .section-title{font-family:Georgia,serif;font-size:22px;color:var(--dark);margin-bottom:4px}
   .section-sub{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:20px}
   .form-group{margin-bottom:14px}
-  .form-label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
-  .form-input,.form-select,.form-textarea{width:100%;background:#2a2015;border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color 0.2s}
-  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold)}
-  .form-select option{background:#1a1410}
+  .form-label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;font-weight:600}
+  .form-input,.form-select,.form-textarea{width:100%;background:#fff;border:1px solid var(--border);border-radius:6px;padding:9px 12px;color:var(--text);font-size:13px;font-family:inherit;outline:none;transition:border-color 0.2s;box-shadow:inset 0 1px 3px rgba(0,0,0,0.04)}
+  .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(168,120,32,0.12)}
+  .form-select option{background:#fff}
   .form-textarea{resize:vertical;min-height:70px}
   .form-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
   .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 
   /* ── Radio / Checkboxes ── */
   .radio-group{display:flex;gap:24px;flex-wrap:wrap}
-  .radio-opt{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}
+  .radio-opt{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text)}
   .radio-opt input{accent-color:var(--gold);width:14px;height:14px}
   .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 8px}
-  .cat-opt{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;padding:3px 0}
+  .cat-opt{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:12px;padding:3px 0;color:var(--text)}
   .cat-opt input{accent-color:var(--gold);width:13px;height:13px;flex-shrink:0}
 
   /* ── Buttons ── */
-  .btn-gold{background:var(--gold);color:#0e0c09;border:none;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;transition:background 0.2s;letter-spacing:0.5px}
+  .btn-gold{background:var(--gold);color:#fff;border:none;padding:10px 20px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;transition:background 0.2s;letter-spacing:0.5px;box-shadow:0 1px 3px rgba(0,0,0,0.15)}
   .btn-gold:hover{background:var(--gold2)}
-  .btn-dark{background:#3a2e1e;color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer;transition:background 0.2s}
-  .btn-dark:hover{background:#4a3e2e}
-  .btn-red{background:#2a1010;color:var(--red);border:1px solid #3a2020;padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer}
-  .btn-red:hover{background:#3a1818}
+  .btn-dark{background:#fff;color:var(--text);border:1px solid var(--border);padding:8px 16px;border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.2s;box-shadow:0 1px 2px rgba(0,0,0,0.06)}
+  .btn-dark:hover{background:#f5f0e8;border-color:#c0b090}
+  .btn-red{background:#fff;color:var(--red);border:1px solid #f0c0bc;padding:8px 14px;border-radius:6px;font-size:12px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,0.06)}
+  .btn-red:hover{background:#fdf0ef;border-color:var(--red)}
   .btn-row{display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap}
 
   /* ── Customer table ── */
-  .toolbar{display:flex;align-items:center;gap:12px;background:var(--dark);padding:10px 18px;border-radius:8px 8px 0 0;flex-wrap:wrap}
-  .search-input{background:#2a2015;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:13px;outline:none;width:220px}
-  .search-input:focus{border-color:var(--gold)}
+  .toolbar{display:flex;align-items:center;gap:12px;background:#fff;padding:10px 18px;border-radius:8px 8px 0 0;border:1px solid var(--border);border-bottom:none;flex-wrap:wrap}
+  .search-input{background:#faf7f2;border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:6px;font-size:13px;outline:none;width:220px;transition:border-color 0.2s}
+  .search-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(168,120,32,0.1)}
   .cust-table{width:100%;border-collapse:collapse;font-size:13px}
-  .cust-table th{background:var(--dark);color:var(--gold);font-weight:600;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
-  .cust-table td{padding:9px 14px;border-bottom:1px solid #2a2015;color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .cust-table tr:hover td{background:#261f10;cursor:pointer}
-  .count-badge{font-size:12px;color:var(--gold);margin-left:8px}
+  .cust-table th{background:#f5f0e8;color:var(--gold);font-weight:700;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border)}
+  .cust-table td{padding:9px 14px;border-bottom:1px solid #ede8dc;color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cust-table tr:hover td{background:#faf7f0;cursor:pointer}
+  .count-badge{font-size:12px;color:var(--gold);margin-left:8px;font-weight:600}
 
   /* ── Message pane ── */
   .msg-layout{display:grid;grid-template-columns:260px 1fr;gap:16px}
-  .msg-left{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
-  .msg-right{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px}
+  .msg-left{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+  .msg-right{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
   .cat-scroll{max-height:260px;overflow-y:auto;padding-right:6px}
   .cat-scroll::-webkit-scrollbar{width:4px}
-  .cat-scroll::-webkit-scrollbar-track{background:#1a1410}
-  .cat-scroll::-webkit-scrollbar-thumb{background:#3a2e1e;border-radius:2px}
+  .cat-scroll::-webkit-scrollbar-track{background:#f0ece4}
+  .cat-scroll::-webkit-scrollbar-thumb{background:#ddd4c0;border-radius:2px}
   .recip-count{font-size:18px;font-weight:700;color:var(--gold);margin-top:12px}
   .recip-names{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.6}
   .quick-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-  .quick-btn{background:#2a2015;border:1px solid var(--border);color:var(--gold);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px}
-  .quick-btn:hover{background:#3a2e1e}
-  .send-log{background:#0e0c09;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Courier New',monospace;font-size:11px;color:var(--green);height:160px;overflow-y:auto;margin-top:10px;white-space:pre-wrap;word-break:break-all}
+  .quick-btn{background:#faf7f2;border:1px solid var(--border);color:var(--gold);padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;transition:all 0.2s}
+  .quick-btn:hover{background:#f0e8d8;border-color:var(--gold)}
+  .send-log{background:#f8f8f8;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Courier New',monospace;font-size:11px;color:#2a7d3a;height:160px;overflow-y:auto;margin-top:10px;white-space:pre-wrap;word-break:break-all}
   .send-log .log-skip{color:var(--muted)}
   .send-log .log-err{color:var(--red)}
   .sep{border:none;border-top:1px solid var(--border);margin:14px 0}
 
   /* ── Settings ── */
   .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .env-note{background:#1a1a10;border:1px solid var(--border);border-radius:6px;padding:14px 16px;font-size:12px;color:var(--gold);line-height:1.8;margin-top:14px}
+  .env-note{background:#faf7f0;border:1px solid #e0d0a0;border-radius:6px;padding:14px 16px;font-size:12px;color:#6b5010;line-height:1.8;margin-top:14px}
 
   /* ── Success / error ── */
   .flash{padding:12px 16px;border-radius:6px;margin-bottom:16px;font-size:13px;display:none}
-  .flash.success{background:#1a3020;border:1px solid var(--green);color:var(--green)}
-  .flash.error{background:#2a1010;border:1px solid var(--red);color:var(--red)}
+  .flash.success{background:#eaf5ec;border:1px solid #a0d4a8;color:#1e6b2a}
+  .flash.error{background:#fdf0ef;border:1px solid #f0b0ac;color:#a0241c}
 
   /* ── Misc ── */
   .divider{border:none;border-top:1px solid var(--border);margin:18px 0}
@@ -151,8 +151,8 @@
 <!-- ═══ HEADER ════════════════════════════════════════════════════════════ -->
 <header>
   <div>
-    <div class="logo">⚜ GOLDEN BALL PAWN</div>
-    <div class="logo-sub">Greenville, SC &nbsp;·&nbsp; Customer Manager</div>
+    <div class="logo">⚜ CASH FOR GOLD</div>
+    <div class="logo-sub">Griffin, GA &nbsp;·&nbsp; Customer Manager</div>
   </div>
   <div class="header-prices">
     <span class="price-badge gold-p" id="hdr-gold">Gold: —</span>
@@ -180,7 +180,7 @@
 <div id="tab-dashboard" class="tab-panel active">
   <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px">
     <div>
-      <h1 style="font-family:Georgia,serif;font-size:24px;color:var(--gold)">Daily Market Recap</h1>
+      <h1 style="font-family:Georgia,serif;font-size:24px;color:var(--dark)">Daily Market Recap</h1>
     </div>
     <span style="font-size:12px;color:var(--muted)" id="dash-ts"></span>
   </div>
@@ -320,8 +320,9 @@
     <span class="count-badge" id="cust-count"></span>
     <div style="margin-left:auto;display:flex;gap:8px">
       <button class="btn-gold" onclick="showTab('add')" style="padding:7px 14px;font-size:12px">+ Add New</button>
-      <button class="btn-dark" onclick="editSelected()">✏ Edit</button>
-      <button class="btn-red" onclick="deleteSelected()">🗑 Delete</button>
+      <button class="btn-dark" onclick="editSelected()">&#9998; Edit</button>
+      <button class="btn-dark" onclick="printCustomerForm()" style="color:#5b9bd5">&#128438; Print Form</button>
+      <button class="btn-red" onclick="deleteSelected()">&#128465; Delete</button>
     </div>
   </div>
   <div style="overflow-x:auto;border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px">
@@ -423,7 +424,7 @@
     <div class="form-row-2">
       <div class="form-group">
         <label class="form-label">Shop Name</label>
-        <input class="form-input" id="s-shop_name" placeholder="Golden Ball Pawn">
+        <input class="form-input" id="s-shop_name" placeholder="Cash For Gold">
       </div>
       <div class="form-group">
         <label class="form-label">Shop Phone</label>
@@ -835,6 +836,224 @@ function showFlash(id, msg, type) {
   const el = document.getElementById(id);
   el.textContent = msg; el.className = `flash ${type}`; el.style.display = 'block';
   setTimeout(() => el.style.display = 'none', 5000);
+}
+
+// ── Print Customer Form ───────────────────────────────────────────────────
+function printCustomerForm() {
+  const categories = [
+    "Gold - Buying", "Gold - Selling",
+    "Silver - Buying", "Silver - Selling",
+    "Jewelry", "Ladies Rings", "Mens Rings", "Watches",
+    "Tennis Shoes / Sneakers", "Electronics", "Musical Instruments",
+    "Firearms", "Tools & Equipment", "Coins & Collectibles",
+    "Luxury Bags", "Other"
+  ];
+
+  const catRows = categories.map(cat =>
+    `<tr>
+      <td style="padding:6px 10px;border-bottom:1px solid #ccc;width:36px;text-align:center">
+        <div style="width:16px;height:16px;border:2px solid #333;display:inline-block;vertical-align:middle"></div>
+      </td>
+      <td style="padding:6px 10px;border-bottom:1px solid #ccc;font-size:13px">${cat}</td>
+    </tr>`
+  ).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cash For Gold - Customer Registration</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; color: #000; background: #fff; font-size: 13px; }
+  .page { max-width: 720px; margin: 0 auto; padding: 32px 40px; }
+
+  .shop-header { text-align: center; border-bottom: 3px solid #000; padding-bottom: 16px; margin-bottom: 24px; }
+  .shop-name { font-size: 26px; font-weight: bold; letter-spacing: 2px; font-family: Georgia, serif; }
+  .shop-sub { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #444; margin-top: 4px; }
+  .form-title { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px; }
+
+  .section { margin-bottom: 22px; }
+  .section-title { font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; color: #555; border-bottom: 1px solid #999; padding-bottom: 4px; margin-bottom: 12px; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .field-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field-label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #333; }
+  .field-line { border: none; border-bottom: 2px solid #333; height: 28px; width: 100%; background: transparent; }
+
+  .check-group { display: flex; gap: 28px; margin-top: 4px; flex-wrap: wrap; }
+  .check-opt { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .checkbox { width: 16px; height: 16px; border: 2px solid #333; display: inline-block; flex-shrink: 0; }
+
+  .cat-table { width: 100%; border-collapse: collapse; }
+  .cat-table-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .cat-half { width: 100%; border-collapse: collapse; }
+  .cat-half td { padding: 6px 10px; border-bottom: 1px solid #ddd; font-size: 12px; }
+  .cat-half td:first-child { width: 32px; text-align: center; }
+
+  .notes-line { border: none; border-bottom: 1px solid #999; height: 22px; width: 100%; background: transparent; margin-bottom: 8px; display: block; }
+
+  .footer { margin-top: 28px; border-top: 1px solid #999; padding-top: 14px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 10px; color: #666; }
+  .sig-block { display: flex; flex-direction: column; gap: 4px; }
+  .sig-line { border-bottom: 1px solid #999; width: 260px; height: 28px; display: block; }
+
+  .consent { font-size: 10px; color: #555; line-height: 1.6; margin-top: 14px; border: 1px solid #ccc; padding: 10px; border-radius: 4px; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { padding: 20px 28px; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="shop-header">
+    <div class="shop-name">CASH FOR GOLD</div>
+    <div class="shop-sub">Griffin, Georgia &nbsp;&middot;&nbsp; Est. 1952</div>
+    <div class="form-title" style="margin-top:10px">Customer Registration Form</div>
+  </div>
+
+  <!-- Personal Info -->
+  <div class="section">
+    <div class="section-title">Personal Information</div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">First Name *</span>
+        <div class="field-line"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">Last Name</span>
+        <div class="field-line"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">Date of Birth</span>
+        <div class="field-line"></div>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">Mobile Number *</span>
+        <div class="field-line"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">Email Address</span>
+        <div class="field-line"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">ID / Driver's License #</span>
+        <div class="field-line"></div>
+      </div>
+    </div>
+    <div class="field-row-2">
+      <div class="field">
+        <span class="field-label">Street Address</span>
+        <div class="field-line"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">City, State, Zip</span>
+        <div class="field-line"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Preference -->
+  <div class="section">
+    <div class="section-title">Preferred Contact Method</div>
+    <div class="check-group">
+      <div class="check-opt"><div class="checkbox"></div> Text Message (SMS)</div>
+      <div class="check-opt"><div class="checkbox"></div> Email</div>
+      <div class="check-opt"><div class="checkbox"></div> Both (Text + Email)</div>
+    </div>
+  </div>
+
+  <!-- Interests -->
+  <div class="section">
+    <div class="section-title">Interests &amp; Categories &nbsp;&mdash;&nbsp; Check all that apply</div>
+    <p style="font-size:11px;color:#555;margin-bottom:10px">We will contact you when items or prices match your interests.</p>
+    <div class="cat-table-wrap">
+      <table class="cat-half">
+        ${categories.slice(0, 8).map(cat => `
+        <tr>
+          <td><div style="width:14px;height:14px;border:2px solid #333;display:inline-block"></div></td>
+          <td>${cat}</td>
+        </tr>`).join('')}
+      </table>
+      <table class="cat-half">
+        ${categories.slice(8).map(cat => `
+        <tr>
+          <td><div style="width:14px;height:14px;border:2px solid #333;display:inline-block"></div></td>
+          <td>${cat}</td>
+        </tr>`).join('')}
+      </table>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  <div class="section">
+    <div class="section-title">Additional Notes / Special Requests</div>
+    <div class="field-line"></div>
+    <div class="field-line" style="margin-top:10px"></div>
+  </div>
+
+  <!-- Consent -->
+  <div class="consent">
+    By signing below, I agree to receive communications from Cash For Gold via my selected contact method(s) regarding pricing alerts, promotions, and inventory updates. I understand I may opt out at any time by contacting the store. This information is kept strictly confidential and will not be shared with third parties.
+  </div>
+
+  <!-- Signature -->
+  <div class="footer">
+    <div class="sig-block">
+      <span style="font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:1px">Customer Signature</span>
+      <div class="sig-line"></div>
+    </div>
+    <div class="sig-block" style="align-items:flex-end">
+      <span style="font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:1px">Date</span>
+      <div class="sig-line" style="width:140px"></div>
+    </div>
+  </div>
+
+  <!-- Staff use -->
+  <div style="margin-top:20px;border:1px dashed #bbb;padding:10px 14px;border-radius:4px">
+    <div style="font-size:10px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:8px">For Staff Use Only</div>
+    <div class="field-row">
+      <div class="field">
+        <span class="field-label">Date Added</span>
+        <div class="field-line"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">Added By</span>
+        <div class="field-line"></div>
+      </div>
+      <div class="field">
+        <span class="field-label">Customer ID #</span>
+        <div class="field-line"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="no-print" style="text-align:center;padding:20px">
+  <button onclick="window.print()" style="background:#000;color:#fff;border:none;padding:12px 32px;font-size:15px;cursor:pointer;border-radius:4px;font-weight:bold">
+    Print / Save as PDF
+  </button>
+  <p style="margin-top:10px;font-size:12px;color:#666">To save as PDF: click Print then choose "Save as PDF" as the printer</p>
+</div>
+
+<script>
+  // Auto-print when opened
+  window.onload = function() { window.print(); };
+</script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
